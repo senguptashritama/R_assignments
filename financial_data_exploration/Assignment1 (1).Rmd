@@ -1,0 +1,183 @@
+---
+title: "LAB1"
+author: "Shritama Sengupta"
+date: "2023-08-08"
+output: html_document
+---
+
+### Loading required libraries
+```{r}
+library(corrplot)
+library(ggplot2)
+library(GGally)
+
+```
+### 1.
+### Laoding data
+```{r}
+df = data <- read.csv("C:/Users/shrit/Downloads/Ass-1_Dataset_Largest companay yields - Sheet1.csv")
+
+```
+
+### Renaming columns
+```{r}
+colnames(df)
+
+newnames = c("company", "sales", "profits", "assets")
+colnames(df) = newnames
+
+df
+```
+
+### Replacing null values
+```{r}
+# Replacing the null value
+profits_mean <- mean(df$profits, na.rm = TRUE)
+na_indices <- which(is.na(df$profits))
+df$profits[na_indices] <- profits_mean
+
+print(df)
+attach(df)
+```
+
+### Summary Statistics
+```{r}
+# Summary 
+summary(sales)
+summary(profits)
+summary(assets)
+```
+
+### 2.
+### Correlation Plot
+```{r}
+# Correlation Analysis
+
+# Calculating correlations
+cor_sales_profits <- cor(data$Sales, data$Profits, use = "complete.obs")
+cor_sales_assets <- cor(data$Sales, data$Assets, use = "complete.obs")
+cor_profits_assets <- cor(data$Profits, data$Assets, use = "complete.obs")
+
+# a data frame for correlations
+correlation_data <- data.frame(
+  Comparison = c("Sales vs Profits", "Sales vs Assets", "Profits vs Assets"),
+  Correlation = c(cor_sales_profits, cor_sales_assets, cor_profits_assets)
+)
+
+# a colorful and attractive correlation plot
+correlation_plot <- ggplot(correlation_data, aes(x = Comparison, y = Correlation, fill = Comparison)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Correlation between Variables", x = NULL, y = "Correlation") +
+  scale_fill_brewer(palette = "Set1") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Displaying the plot
+correlation_plot
+
+
+
+```
+
+### Scatter Plot
+```{r}
+# Creating a new plot window
+par(mfrow = c(1, 3))  # Divide the plot area into 1 row and 3 columns
+
+# Scatter plot: Sales vs Profits
+plot(data$Sales, data$Profits, pch = 16, col = "blue",
+     main = "Sales vs Profits", xlab = "Sales (Billions)", ylab = "Profits (Billions)")
+
+# Scatter plot: Sales vs Assets
+plot(data$Sales, data$Assets, pch = 16, col = "green",
+     main = "Sales vs Assets", xlab = "Sales (Billions)", ylab = "Assets (Billions)")
+
+# Scatter plot: Profits vs Assets
+plot(data$Profits, data$Assets, pch = 16, col = "red",
+     main = "Profits vs Assets", xlab = "Profits (Billions)", ylab = "Assets (Billions)")
+
+# Reset plot layout
+par(mfrow = c(1, 1))
+
+```
+
+### PairPlots
+```{r}
+# Creating the pair plot
+
+# Creating a scatterplot matrix with dot plots on diagonals and lower triangular matrix
+ggpairs(data = df,
+        columns = c("sales", "profits", "assets"),
+        title = "Scatterplot Matrix with Density Plots",
+        diag = list(continuous = wrap("densityDiag", col = "steelblue")),
+        lower = list(continuous = wrap("points", alpha = 0.6)))
+
+```
+
+##### In summary, the above plots  shows a positive correlation between sales and profits, aligning with expectations. However, a  negative correlation exists between "Sales & Assets" and "Profits & Assets".
+
+### Histogram Plot
+```{r}
+# Creating a new plot window with multiple plots in a 1x3 grid
+par(mfrow = c(1, 3))
+
+# Histogram: Sales
+hist(data$Sales, col = "blue", main = "Sales Distribution", xlab = "Sales")
+
+# Histogram: Profits
+hist(data$Profits, col = "green", main = "Profits Distribution", xlab = "Profits")
+
+# Histogram: Assets
+hist(data$Assets, col = "red", main = "Assets Distribution", xlab = "Assets")
+
+# Reset plot layout
+par(mfrow = c(1, 1))
+
+```
+#### This plot shows that the sales is highest between 50-100 billion. Profits is highest between 15-20 billion and most assests are within 500 billion.
+
+# Box Plot
+```{r}
+# Creating a new plot window with multiple plots in a 1x3 grid
+par(mfrow = c(1, 3))
+
+# Boxplot: Sales
+boxplot(df$sales, col = "blue", main = "Sales Boxplot")
+
+# Boxplot: Profits
+boxplot(df$profits, col = "green", main = "Profits Boxplot")
+
+# Boxplot: Assets
+boxplot(df$assets, col = "red", main = "Assets Boxplot")
+
+# Reset plot layout
+par(mfrow = c(1, 1))
+
+
+```
+
+#### This plot shows sales has median of roughly 125 billion, profits a little above 15 billion and assests around 500 billion.
+
+### 3.
+
+### Questions : 1. Which Company has the highest & least  Sales, Profits, Assets ? 
+
+```{r}
+print(paste("Company with the highest sales:",company[which.max(sales)],
+      "& Company with the lowest Sales:",company[which.min(sales)]) )
+
+print(paste("Company with the highest Profit:",company[which.max(profits)],
+      "& Company with the lowest Profits:",company[which.min(profits)]))
+
+print(paste("Company with the highest Assets:",company[which.max(assets)],
+      "& Company with the lowest Assets:",company[which.min(assets)]))
+
+```
+
+#### Sales Strategy: Given that Royal Dutch/Shell has the highest sales and HSBC group has the lowest, the end user could analyze the factors contributing to Royal Dutch/Shell's success and consider potential strategies to improve HSBC group's sales performance. Understanding what sets top performers apart could guide sales strategies.
+
+#### Profit Maximization: Exxon Mobil stands out with the highest profits, while HSBC group lags behind. This discrepancy highlights the importance of analyzing Exxon Mobil's profitability model and identifying opportunities for the HSBC group to enhance its profit margins.
+
+#### Asset Management: Citigroup leads in asset value, while Bank of America falls behind. The end user could study Citigroup's effective asset management practices and offer suggestions to Bank of America for optimizing its asset utilization and potentially improving overall financial health.
+
+

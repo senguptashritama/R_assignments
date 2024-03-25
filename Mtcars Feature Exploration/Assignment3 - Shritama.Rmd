@@ -1,0 +1,167 @@
+---
+title: "Assignment3"
+author: "Shritama(22MSD7032)"
+date: "2023-08-29"
+output: html_document
+---
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+### importing the dataset
+```{r}
+mtcars
+
+```
+
+
+### Question 1 : Explain the need for MLR for the selected dataset.
+
+Interpretation: 
+
+`The mtcars dataset provides information on a variety of automobile models, including weight, horsepower, miles per gallon (mpg), and cylinder count. We may use multiple linear regression (MLR) to better understand the connection between the dependent variable (mpg) and various independent variables (e.g., weight, horsepower, etc.).`
+
+`When there are multiple independent factors that potentially impact the dependent variable, MLR is extremely useful. Various independent factors, like as weight and horsepower, may impact fuel efficiency in the mtcars dataset. Using MLR, we may estimate the influence of each independent variable on the dependent variable while controlling for the effects of other independent variables.`
+
+### Question 2 :  Find the correlation matrix and identify the highly correlated variables. Interpret it. 
+
+```{r}
+cor_matrix <- cor(mtcars)
+cor_matrix
+```
+
+```{r}
+mpg_correlations <- cor_matrix["mpg", ]
+mpg_correlations <- mpg_correlations[-1] # remove mpg correlation with itself
+corr_list <- sort(mpg_correlations, decreasing=TRUE)
+print(corr_list)
+
+```
+
+
+Interpretation: 
+`Using the correlation matrix, we can see that "wt," "cyl," "disp," "hp," and "drat" are significantly linked with my goal variable "mpg," indicating that these columns will have the most influence on "mpg.".`
+
+`Because "wt", "cyl", "disp", "hp", and "carb" are negatively connected, as the values of these variables fall, the values of "mpg" increase.and for the other variables, if the values of those variables ("drat","vs","am","gear","qsec") increases, so does the value of "mpg".`
+
+### Question 3: Draw a matrix scatter diagram between the variables of interest using ggplots and the pair function. 
+
+`As we don't know which variables are actually importent , so we first decide that using ANOVA test`
+```{r}
+attach(mtcars)
+
+mlr1=lm(mpg~.,data=mtcars)
+mlr1
+```
+
+```{r}
+anova(mlr1)
+```
+
+`Now by using ANOVA , we can determine that "cyl","disp","wt" are significant for modelling "mpg".`
+
+```{r}
+library(ggplot2)
+library(GGally)
+pairs_plot <- ggpairs(mtcars, columns=c("mpg", "wt", "disp","cyl"))
+print(pairs_plot)
+```
+
+
+### Question 4: Are the regressors independent of each other? Justify your answer with the help of Q3.
+
+Interpretation: 
+
+- `From the above pair plot we can determine that the regressor variables are not independent. `
+- `Correlation between disp & wt = 0.888`
+- `Correlation between disp & cyl = 0.902`
+- `Correlation between cyl & wt = 0.782`
+
+
+### Question 5: Fit a multiple linear regression model to the selected response (y) and regressor variables (highly correlated with 'y' only) and interpret the estimated coefficients.
+```{r}
+mlr_model = lm(mpg ~ wt + cyl + disp, data = mtcars)
+summary(mlr_model)
+```
+
+
+Interpretation:
+- `The -3.63 coefficient for wt shows the estimated decrease in mpg for a one-unit increase in wt while keeping cyl and disp unchanged.`
+
+- `The cyl -1.78 coefficient reflects the estimated change in mpg for a one-unit increase in cyl while maintaining wt and disp unchanged.`
+
+- `The coefficient for disp 0.0074 represents the expected change in mpg for a one-unit increase in disp, holding wt and cyl constant.`
+
+`As Disp is not signicant for my data we can eliminate that variable`
+
+```{r}
+mlr2 = lm(mpg ~ wt + cyl, data = mtcars)
+summary(mlr2)
+```
+
+
+### Question6: Construct the 95% and 99% confidence intervals for the individual parameters in the model.  
+```{r}
+# The 95% CI
+confint(mlr2, level = 0.95)
+```
+
+
+```{r}
+confint(mlr2, level = 0.99)
+```
+
+### Model Assumptions for Regression Analysis 
+- Unbiasdness
+- Multicoliniarity
+- Homoscadasticity
+- Non Stochastic Regressor
+- No Auto Correlation
+```{r}
+e=residuals(mlr2)
+round(sum(e),5)
+
+```
+`So we can see that the rounded value of the mean of the error value is 0 which is satisfying the first Assumption.`
+
+```{r}
+library(car)
+vif(mlr2)
+
+```
+`Here all the values are < 5 which Indicates that the variables are No Multicoliniarity present.`
+
+```{r}
+library(lmtest)
+dwtest(mlr2)
+```
+`As the P-value is 0.133 >0.05 which isdicates that there are no AutoCorrelation Present in the dataset.`
+
+```{r}
+bptest(mlr2)
+```
+As the P Value is > 0.05 The data is Homoscadastic.
+
+> ### **Final Report based on the above analysis**
+
+`This Analysis shows the implementation of a multiple linear regression study on the mtcars dataset. The study's purpose is to discover the relationship between a variety of independent factors and the dependent variable, which is the fuel economy of different automobile models (mpg).`
+
+> **Data Description**
+
+`The mtcars dataset contains information on 32 distinct automobile models, such as fuel efficiency (in miles per gallon), cylinder count, engine displacement (in cubic inches), horsepower, and other characteristics. The dataset is frequently used in statistical analysis to test regression models.`
+
+> **Exploratory Data Analysis**
+
+`To understand the relationships between the variables in the dataset, exploratory data analysis is performed prior to regression analysis. ggplot2 and the GGaly() function to generate a matrix scatter diagram of the variables of interest, which assisted us in identifying the highly correlated variables.According to the ANOVA analysis and model testing, various factors, including cyl,disp, and wt, are substantially associated with each other and with the dependent variable mpg. This means that these variables may include duplicate information and are not completely independent of one another. `
+
+> **Multiple Linear Regression Analysis**
+
+`After testing the mlr_model we find out that only 'wt' and 'cyl' has significant effect for the model building. So we have only considered these two variables.`
+
+
+> **Conclusion**
+
+`This analysis revealed the need of investigating variable correlations when creating regression models. By identifying strongly connected variables, we may prevent duplication and overfitting in our models.`
+
+

@@ -1,0 +1,163 @@
+---
+title: "LDA_QDA_Assignment 5"
+author: "Shritama Sengupta (22MSD7032)"
+date: "2023-11-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## LDA
+
+```{r cars}
+# Display the first few rows of the dataset
+head(mtcars)
+
+# Dimensions of the dataset
+dim(mtcars)
+```
+
+```{r}
+# Split the data into training and testing sets
+s_mtcars = sample(2, nrow(mtcars), replace = TRUE, prob = c(0.6, 0.4))
+tr_mtcars = mtcars[s_mtcars == 1, ]
+tt_mtcars = mtcars[s_mtcars == 2, ]
+```
+
+```{r}
+# Dimensions of the training and testing sets
+dim(tr_mtcars)
+dim(tt_mtcars)
+```
+
+```{r}
+# Load necessary libraries
+library(klaR)
+library(ggordiplots)
+```
+
+```{r}
+# Fit LDA model
+lda_mtcars = lda(factor(cyl) ~ ., data = tr_mtcars)
+```
+
+```{r}
+# Display summary of the LDA model
+lda_mtcars
+```
+
+### Prior Probabilities of Groups:
+### 4, 6, 8: These are the levels of the response variable "cyl" (cylinders) in the "mtcars" dataset.
+### Prior probabilities: The estimated proportions of each cylinder group in the training set.
+### Group Means:
+### mpg, disp, hp, ... carb: These are the variables in the dataset.
+### Group means: The average values of each variable for each cylinder group.
+### Coefficients of Linear Discriminants:
+### LD1, LD2: These are the linear discriminant functions.
+### Coefficients: The weights assigned to each variable in the linear combination to form the discriminant functions.
+### Proportion of Trace:
+### LD1, LD2: The proportion of the total variability (trace) explained by each discriminant function.
+### Interpretation:
+### The model uses linear combinations of the input variables (mpg, disp, hp, etc.) to create discriminant functions (LD1 and LD2) that maximize the separation between the cylinder groups (4, 6, 8).
+### The coefficients of the discriminant functions indicate the contribution of each variable to the separation between groups.
+### The proportion of trace provides information about the relative importance of each discriminant function.
+### In short, the LDA model has identified linear combinations of variables that effectively separate cars with different numbers of cylinders. The coefficients in the discriminant functions indicate the influence of each variable, and the proportion of trace helps assess the importance of each discriminant function in explaining the overall variability.
+
+
+## QDA
+
+```{r}
+# Make predictions on the training set
+pr_mtcars_train = predict(lda_mtcars, data = tr_mtcars)
+```
+
+```{r}
+# Evaluate on the training set
+ldahist(pr_mtcars_train$x[, 1], g = tr_mtcars$cyl)
+gg_ordiplot(lda_mtcars, tr_mtcars$cyl)
+```
+
+```{r}
+# Confusion table and accuracy on the training set
+tab_train = table(pr_mtcars_train$class, tr_mtcars$cyl)
+accuracy_train = sum(diag(tab_train)) / sum(tab_train)
+accuracy_train
+```
+
+```{r}
+# Make predictions on the testing set
+pr_mtcars_test = predict(lda_mtcars, newdata = tt_mtcars)
+```
+
+```{r}
+# Confusion table and accuracy on the testing set
+tab_test = table(pr_mtcars_test$class, tt_mtcars$cyl)
+accuracy_test = sum(diag(tab_test)) / sum(tab_test)
+accuracy_test
+```
+
+```{r}
+# Length of predicted classes and actual classes in the testing set
+length(pr_mtcars_test$class)
+length(tt_mtcars$cyl)
+```
+
+```{r}
+# Display the confusion table for the testing set
+tab_test
+```
+
+-----------------------------------------------------------------------------------------------------------
+
+```{r}
+# Load the necessary libraries
+library(klaR)
+library(ggordiplots)
+
+# Split the data into training and testing sets
+set.seed(123)  # Set seed for reproducibility
+s_iris = sample(2, nrow(iris), replace = TRUE, prob = c(0.6, 0.4))
+tr_iris = iris[s_iris == 1, ]
+tt_iris = iris[s_iris == 2, ]
+
+# Fit QDA model on the training set
+qda_iris = qda(Species ~ ., data = tr_iris)
+
+# Display summary of the QDA model
+qda_iris
+
+```
+
+### Prior Probabilities of Groups:
+### setosa, versicolor, virginica: These are the levels of the response variable "Species" in the "tr_iris" dataset.
+### Prior probabilities: The estimated probabilities of each species group in the training set.
+### Group Means:
+### Sepal.Length, Sepal.Width, Petal.Length, Petal.Width: These are the variables in the dataset.
+### Group means: The average values of each variable for each species group.
+### Interpretation in Short:
+### The QDA model has estimated the prior probabilities for each species group, indicating the relative prevalence of setosa, versicolor, and virginica in the training set.
+### The group means provide insights into the average values of the four features (Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) for each species group.
+### QDA aims to find quadratic decision boundaries that maximize the separation between the species groups based on these features.
+### In short, the model is trained to discriminate between different species of iris flowers using a quadratic approach. The prior probabilities and group means provide information about the distribution of the species groups and the average feature values for each group in the training data.
+
+```{r}
+# Make predictions on the testing set using QDA
+pr_qda_iris = predict(qda_iris, newdata = tt_iris)
+
+# Confusion table and accuracy on the testing set for QDA
+tab_qda_iris = table(pr_qda_iris$class, tt_iris$Species)
+accuracy_qda_iris = sum(diag(tab_qda_iris)) / sum(tab_qda_iris)
+accuracy_qda_iris
+
+# Length of predicted classes and actual classes in the testing set for QDA
+length(pr_qda_iris$class)
+length(tt_iris$Species)
+
+# Display the confusion table for the testing set for QDA
+tab_qda_iris
+
+```
+
+

@@ -1,0 +1,221 @@
+---
+title: "Regression Analysis"
+author: "Shritama Sengupta"
+date: "2023-05-22"
+output: html_document
+---
+
+#### 1. Dataset Description
+
+The Swiss dataset is a built-in dataset available in R's base package. It contains socio-economic data for 47 Swiss cantons (regions) collected in the late 19th century. The dataset is commonly used for teaching and learning purposes, as well as for illustrating various statistical techniques.
+
+The Swiss dataset includes the following variables:
+
+1. Fertility: A numeric variable representing the "crude birth rate" (number of live births per 1,000 women of childbearing age).
+2. Agriculture: A numeric variable representing the percentage of males involved in agricultural pursuits.
+3. Examination: A numeric variable representing the percentage of men in the cantonal military service who were considered fit for duty after medical examination.
+4. Education: A numeric variable representing the average number of years of education among the population aged 20 and older.
+5. Catholic: A numeric variable representing the percentage of the population that is Catholic.
+6. Infant.Mortality: A numeric variable representing the infant mortality rate (number of deaths during the first year of life per 1,000 live births).
+
+These variables provide socio-economic indicators for each Swiss canton. The dataset can be used to explore relationships between these variables and perform various statistical analyses such as regression, correlation, and hypothesis testing.
+
+
+#### Importing Dataset
+```{r}
+library(datasets)
+data(swiss)
+```
+### Analysis :
+
+### 
+Fertility vs. Agriculture: From the pair Correlation plot we can see that there is a strong positive correlation present between the Fertility rate and the Agriculture. Cantons with higher agricultural involvement tend to have higher fertility rates.
+
+Fertility vs. Examination: From the pair Correlation plot we can see that there is a negative correlation present between the Fertility rate and the percentage of males examined for military service, which means as the no of males who can serve in the military will increase the number of children born to each woman will decrease.
+
+Fertility vs. Education: From the pair Correlation plot we can see that there is a moderate negative correlation between fertility rates and the percentage of educated males in the population, which means as the percentage of educated males increases the the number of children born to each woman will decrease.
+
+Fertility vs. Catholic: From the pair Correlation plot we can see that there is a weak negative correlation between fertility rates and the percentage of the population that is Catholic, which means as the no of catholic people increases the Fertility rate decreases.
+
+Fertility vs. Infant Mortality: From the pair Correlation plot we can see that there is a weak positive correlation between fertility rates and the infant mortality rates,which indicates the increment in the Fertility rate according to the increment in the Infant Mortality Rates.
+###
+#### 2. Do a multiple correlation plot using pairs() function for all the variables and analyse the plot.
+```{r}
+par(plt = c(0.5, 1.0, 0.5, 1.0), mar = c(0.7, 5, 0.7, 0.7), oma = c(5, 5, 3, 3))
+
+pairs(swiss)
+```
+
+#### 3.Randomly split the data with 70% as train and 30% as test data.
+```{r}
+# Setting the seed for reproducibility
+set.seed(333)
+
+# Generating random indices for train and test sets
+train_indices <- sample(1:nrow(swiss), 0.7 * nrow(swiss))
+test_indices <- setdiff(1:nrow(swiss), train_indices)
+
+# Creating the train and test datasets
+train_data <- swiss[train_indices, ]
+test_data <- swiss[test_indices, ]
+```
+
+#### 4. onsider Fertility as the response/target variable and the remaining 5 variables as predictors. Fit a multiple linear regression model to the following 4 models on the train data:
+```{r}
+# Define the models
+model1 <- lm(Fertility ~ ., data = train_data)
+model2 <- lm(Fertility ~ . - Examination, data = train_data)
+model3 <- lm(Fertility ~ . - Education, data = train_data)
+model4 <- lm(Fertility ~ . - Examination - Education, data = train_data)
+model5 <- lm(Fertility ~ Catholic, data = train_data)
+```
+#### 5. Compute R2, adjusted- R2, RMSE and AIC value for each model for traindata. Compare the metrics and choose the best model (write proper reasoning) out of the 4 models. Construct the table in R for comparison purpose.
+```{r}
+# Compute R-squared, adjusted R-squared, RMSE, and AIC for each model
+metrics <- data.frame(
+  Model = c("Model1", "Model2", "Model3", "Model4", "Model5"),
+  R2 = c(summary(model1)$r.squared, summary(model2)$r.squared,
+         summary(model3)$r.squared, summary(model4)$r.squared,
+         summary(model5)$r.squared),
+  Adj_R2 = c(summary(model1)$adj.r.squared, summary(model2)$adj.r.squared,
+             summary(model3)$adj.r.squared, summary(model4)$adj.r.squared,
+             summary(model5)$adj.r.squared),
+  RMSE = c(sqrt(mean(model1$residuals^2)), sqrt(mean(model2$residuals^2)),
+           sqrt(mean(model3$residuals^2)), sqrt(mean(model4$residuals^2)),
+           sqrt(mean(model5$residuals^2))),
+  AIC = c(AIC(model1), AIC(model2), AIC(model3), AIC(model4), AIC(model5))
+)
+
+# Print the metrics table
+print(metrics)
+
+```
+Conclusion : As R^2 and Adjusted R^2 is considered to be the confidence of the model and the Robustness to overfit respectively, A high R^2 and Adjusted R^2 indicates that it explains a greater proportion of the variance in the dependent variable while considering the number of predictors.So we we can consider Model_1 as the best model as it has highest R^2 and Adjusted R^2 value and comparatively less AIC and RMSE value.
+
+#### 6. For the best model, due the residual analysis to verify if the model best fits the data with analysis.
+```{r}
+# Select the best model based on the metrics
+best_model <- model1
+
+# Obtain the residuals
+residuals <- resid(best_model)
+
+# Plot the diagnostic plots
+par(mfrow = c(2, 2))
+
+# Residuals vs Fitted values plot
+plot(fitted(best_model), residuals,
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     main = "Residuals vs Fitted")
+
+# Normal Q-Q plot
+qqnorm(residuals, main = "Normal Q-Q")
+qqline(residuals)
+
+# Scale-Location plot (Square root of standardized residuals vs Fitted values)
+plot(fitted(best_model), sqrt(abs(residuals)),
+     xlab = "Fitted Values",
+     ylab = "Square Root of Standardized Residuals",
+     main = "Scale-Location Plot")
+
+# Residuals vs Leverage plot
+plot(hatvalues(best_model), residuals,
+     xlab = "Leverage",
+     ylab = "Residuals",
+     main = "Residuals vs Leverage")
+
+```
+
+plot(fitted(best_model), residuals, ...)  - creates the residuals vs. fitted values plot, where we examine if the residuals have a random pattern around zero, indicating a good fit.
+
+qqnorm(residuals) and qqline(residuals)  - create a normal Q-Q plot, where we check if the residuals follow a straight line, indicating normality.
+
+plot(fitted(best_model), sqrt(abs(residuals)), ...)  - creates the scale-location plot, also known as the spread-location plot or square root of standardized residuals vs. fitted values plot. This plot helps us assess if the residuals are spread evenly across different levels of the fitted values and identify potential heteroscedasticity.
+
+plot(hatvalues(best_model), residuals, ...) creates the residuals vs. leverage plot. This plot helps us identify influential observations with high leverage and assess if any observations are outliers.
+
+Conclusion : 1. From the scatter plot of the Residuals we can see that it is pretty randomly distributed which can be a indication of a good fitted model. 2. Normal Q-Q plot shows that if the error follows a Normal distribution and from the curve it can be seen that the error of the chosen model is normally distributed. 3. Residual Vs Leverage plot helps us to find potential outliers , in this case we can see that there are very few of them . which is a good indication.
+
+
+#### 7. For the best model selected, construct the 90% confidence interval for each of the parameters. Write the code/function for confidence interval and cross verify your answer with the inbuilt function.
+
+```{r}
+# Selecting the best model based on the metrics
+best_model <- model1
+
+# Calculating the 90% confidence intervals using confint()
+conf_intervals <- confint(best_model, level = 0.90)
+
+# Printing the confidence intervals
+print(conf_intervals)
+```
+
+```{r}
+# Manually calculating the confidence intervals
+n <- nrow(train_data)  # Number of observations
+p <- length(coefficients(best_model))  # Number of parameters (including intercept)
+t_value <- qt((1 - 0.90) / 2, df = n - p)  # T-distribution critical value
+se <- sqrt(diag(vcov(best_model)))  # Standard errors of the parameters
+coefficients(best_model) + t_value * se  # Upper confidence bounds
+coefficients(best_model) - t_value * se  # Lower confidence bounds
+```
+
+#### 8. Use the best model and its estimated coefficient values to make predictions for Fertility on the test data.
+
+```{r}
+
+# Select the best model based on the metrics
+best_model <- model1
+
+# Obtain the test data
+test_data <- swiss[-train_indices, ]
+
+# Make predictions on the test data
+predictions <- predict(best_model, newdata = test_data)
+
+# Print the predictions
+print(predictions)
+
+```
+
+#### 9. Compute RMSE, MAE between the actual values of response (in test data) and the predicted values.
+```{r}
+# Select the best model based on the metrics
+best_model <- model1
+
+# Obtain the test data
+test_data <- swiss[-train_indices, ]
+
+# Make predictions on the test data
+predictions <- predict(best_model, newdata = test_data)
+
+# Extract the actual values of the response variable
+actual_values <- test_data$Fertility
+
+# Compute RMSE
+rmse <- sqrt(mean((actual_values - predictions)^2))
+
+# Compute MAE
+mae <- mean(abs(actual_values - predictions))
+
+# Print RMSE and MAE
+print(paste("RMSE:", rmse))
+print(paste("MAE:", mae))
+
+```
+#### 10. Plot the actual test data values Vs the predicted values. Use different colours for plots and add legend, title and suitable labels.
+
+```{r}
+test_data$y_predicted <- predict(model1, newdata = test_data)
+
+x_values <- 1:nrow(test_data)
+
+plot(test_data$Fertility, col = "purple",type="l", pch = 16, xlab = "Predictor variables", ylab = "Fertility",
+     main = "Actual vs. Predicted Fertility")
+lines(test_data$y_predicted, col = "red", lty = 2)
+legend("topleft", legend = c("Actual", "Predicted"), col = c("purple", "red"), lty = c(1, 2), pch = 16)
+
+```
+
+

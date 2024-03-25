@@ -1,0 +1,125 @@
+---
+title: "Linear Regression Analysis (ANOVA)"
+author: "Shritama Sengupta"
+date: "2023-04-29"
+output: html_document
+---
+
+## Loading Dataset
+```{r}
+
+library(MASS)
+data(UScereal)
+head(UScereal)
+```
+
+## Creating ANOVA table for USreal dataset
+```{r}
+# Fitting a linear regression model
+model <- lm(calories ~ fibre, data = UScereal)
+
+# Calculating the total sum of squares
+TSS <- sum((UScereal$calories - mean(UScereal$calories))^2)
+
+# Calculating the residual sum of squares
+RSS <- sum(residuals(model)^2)
+
+# Calculating the explained sum of squares
+ESS <- TSS - RSS
+
+# Calculate the degrees of freedom for the model and residuals
+n <- nrow(UScereal)
+p <- length(model$coefficients) - 1
+df_model <- p
+df_residuals <- n - p - 1
+
+# Calculate the mean squares for the model and residuals
+MS_model <- ESS / df_model
+MS_residuals <- RSS / df_residuals
+
+# Calculate the F-statistic and its corresponding p-value
+F_statistic <- MS_model / MS_residuals
+p_value <- pf(F_statistic, df_model, df_residuals, lower.tail = FALSE)
+
+# Create the ANOVA table
+ANOVA_table <- data.frame(
+  Source = c("Model", "Residuals", "Total"),
+  DF = c(df_model, df_residuals, n - 1),
+  Sum_of_Squares = c(ESS, RSS, TSS),
+  Mean_Square = c(MS_model, MS_residuals, NA),
+  F_statistic = c(F_statistic, NA, NA),
+  p_value = c(p_value, NA, NA)
+)
+
+# Print the ANOVA table
+print(ANOVA_table)
+```
+
+## Using built-in ANOVA table to cross verify
+```{r}
+# cross verifying using built-in anova function
+anova(model)
+```
+
+## computing T2 and verifying if T2 = F statistic for the given dataset
+```{r}
+attach(UScereal)
+y= calories
+x= fibre
+
+model <- lm(y ~ x)
+
+# compute T^2
+n <- length(x)
+SSR <- sum((predict(model) - mean(y))^2)
+SSE <- sum(resid(model)^2)
+MRSS = SSE/(n-2)
+
+beta_1_hat = coef(model)[2]
+T2 <-  ( beta_1_hat^2 * sum((x-mean(x))^2) )/ MRSS
+
+# compute F-statistic
+MSR <- SSR / 1
+MSE <- SSE / (n - 2)
+F <- MSR / MSE
+
+# print results
+print(paste("T^2 =", T2))
+
+print(paste("F statistic =", F))
+```
+#### Therefore, T2 = F statistic
+
+## F-distribution curve for the F-statistic
+```{r}
+
+# extract the F-statistic and degrees of freedom from the ANOVA table
+F_statistic <- summary(model)$fstatistic[1]
+df1 <- summary(model)$fstatistic[2]
+df2 <- summary(model)$fstatistic[3]
+
+# create a sequence of x-values for the F-distribution curve
+x <- seq(0, 5, length = 1000)
+
+# calculate the y-values for the F-distribution curve
+y <- df(x, df1, df2)
+
+# plot the F-distribution curve
+plot(x, y, type = "l", xlab = "F", ylab = "Density", main = "F-Distribution Curve")
+
+# find the critical value for alpha = 0.05
+critical_value <- qf(0.95, df1, df2)
+
+# shade the rejection region below the critical value
+polygon(c(0, seq(0, critical_value, length = 100), critical_value, 0),
+        c(0, dchisq(seq(0, critical_value, length = 100), df1), 0, 0),
+        col = "blue", border = NA)
+
+# add a vertical line at the F-statistic value
+abline(v = F_statistic, col = "red")
+
+# add a legend to the plot
+legend("topright", legend = c("F-Distribution Curve", "Rejection Region", "F-Statistic"),
+       col = c("black", "blue", "red"), lty = c(1, 1, 1), pch = c(NA, NA, 1))
+```
+

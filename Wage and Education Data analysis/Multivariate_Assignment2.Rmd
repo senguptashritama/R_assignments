@@ -1,0 +1,185 @@
+---
+title: "Multivariate_Assignment2"
+author: "Shritama Sengupta"
+date: "2023-08-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Dataset 1 - Pima.tr: Diabetes screening data for Pima Indian women.
+```{r}
+# Load the MASS package every time you need it
+library(MASS)
+```
+
+```{r}
+# Load the Pima.tr dataset (training dataset)
+data(Pima.tr)
+```
+
+```{r}
+
+# Display the first few rows of the training dataset
+head(Pima.tr)
+
+# The "Pima Indians Diabetes Database" is a well-known dataset used for various machine learning and statistical analyses. It contains information about Pima Indian women and their health-related attributes, including whether or not they have diabetes. This dataset is often used for tasks such as binary classification, where the goal is to predict whether an individual has diabetes based on the provided attributes.
+
+# Here's a description of the columns (variables) in the dataset:
+
+# Pregnancies: Number of times the individual has been pregnant.
+# Glucose: Plasma glucose concentration a 2 hours in an oral glucose tolerance test.
+# BloodPressure: Diastolic blood pressure (mm Hg).
+# SkinThickness: Triceps skinfold thickness (mm).
+# Insulin: 2-Hour serum insulin (mu U/ml).
+# BMI: Body mass index (weight in kg / (height in m)^2).
+# DiabetesPedigreeFunction: Diabetes pedigree function, a genetic score that considers the diabetes history in relatives and the genetic relationship.
+# Age: Age of the individual (years).
+# Outcome: The target variable; 0 indicates no diabetes, and 1 indicates the presence of diabetes.
+
+```
+
+```{r}
+# Univariate analysis
+
+# Select the "BMI" and "Age" columns for analysis
+bmi_data <- na.omit(Pima.tr$bmi)
+age_data <- na.omit(Pima.tr$age)
+
+# Create a QQ plot for "BMI"
+par(mfrow = c(2, 2))  # Set up a 2x2 grid of plots
+qqnorm(bmi_data, main = "QQ Plot for BMI")
+qqline(bmi_data, col = "red")
+
+# Create a QQ plot for "Age"
+qqnorm(age_data, main = "QQ Plot for Age")
+qqline(age_data, col = "red")
+
+# Create a boxplot for "BMI"
+boxplot(bmi_data, main = "Boxplot of BMI", ylab = "BMI")
+
+# Create a boxplot for "Age"
+boxplot(age_data, main = "Boxplot of Age", ylab = "Age")
+
+# Histogram of "BMI"
+hist(bmi_data, main = "Distribution of BMI", xlab = "BMI", ylab = "Frequency")
+
+# Histogram of "Age"
+hist(age_data, main = "Distribution of Age", xlab = "Age", ylab = "Frequency")
+
+# Reset the plotting layout
+par(mfrow = c(1, 1))
+```
+
+### Age does not follow normal distribution whereas BMI follows normal distribution.
+
+
+```{r}
+# Multivariate
+library(MVN)
+
+# Select only numeric columns for analysis
+numeric_data <- Pima.tr[, c("npreg", "glu", "bp", "skin", "bmi", "ped","age")]
+
+# Perform Mardia's test for multivariate normality
+mardia_test <- mvn(data = numeric_data, mvnTest = "mardia")
+
+royston_test <- mvn(data = numeric_data, mvnTest = "royston")
+
+hz_test <- mvn(data = numeric_data, mvnTest ="hz")
+
+# Print the test results
+print(mardia_test)
+print(royston_test)
+print(hz_test)
+```
+
+### All tests show it does not follow multivariate normal distribution.
+
+
+### Dataset 2 - Wage: Income and education data.
+```{r}
+library(ISLR)
+
+# Load the Wage dataset
+data("Wage")
+# Display the structure of the dataset
+str(Wage)
+
+# Display the first few rows of the dataset
+head(Wage)
+
+# The "Wage" dataset is a real-world dataset often used for regression and statistical analysis. It is available in the ISLR package in R, and it contains information about individuals' wages, education, experience, and other attributes. The dataset is commonly used for illustrating various statistical concepts in textbooks and tutorials.
+
+#Here's a description of the columns (variables) in the "Wage" dataset:
+
+#wage: The individual's wage (in dollars per hour).
+#age: The age of the individual.
+#education: Number of years of education.
+#experience: Number of years of work experience.
+#union: Whether the individual is a member of a labor union (0 = No, 1 = Yes).
+#gender: Gender of the individual (0 = Female, 1 = Male).
+#region: Region of the country where the individual resides (Northeast, Midwest, South, West).
+#jobclass: Job class (1 = Industrial, 2 = Information).
+#health: Self-reported health status (1 = Poor, 2 = Average, 3 = Good).
+#health_ins: Whether the individual has health insurance (0 = No, 1 = Yes).
+#logwage: The natural logarithm of the wage.
+```
+
+
+```{r}
+# Univaraite normality test
+# Select the "wage" and "age" columns for analysis
+wage_data <- Wage$wage
+age_data <- Wage$age
+
+# Create a QQ plot for "wage"
+par(mfrow = c(2, 2))  # Set up a 2x2 grid of plots
+qqnorm(wage_data, main = "QQ Plot for Wages")
+qqline(wage_data, col = "red")
+
+# Create a QQ plot for "age"
+qqnorm(age_data, main = "QQ Plot for Ages")
+qqline(age_data, col = "red")
+
+# Create a boxplot for "wage"
+boxplot(wage_data, main = "Boxplot of Wages", ylab = "Wage")
+
+# Create a boxplot for "age"
+boxplot(age_data, main = "Boxplot of Ages", ylab = "Age")
+
+# Histogram of "wage"
+hist(wage_data, main = "Distribution of Wages", xlab = "Wage", ylab = "Frequency")
+
+# Histogram of "age"
+hist(age_data, main = "Distribution of Ages", xlab = "Age", ylab = "Frequency")
+
+# Reset the plotting layout
+par(mfrow = c(1, 1))
+```
+
+### Wages do not follow normal distribution but Ages follow normal distribution.
+
+```{r}
+# Select the relevant columns for analysis
+columns <- c("wage", "age", "year")
+data_for_analysis <- Wage[, columns]
+```
+
+```{r}
+# Perform multivariate normality test using MVN package
+mardia_test2 <- mvn(data = data_for_analysis, mvnTest = "mardia")
+                   
+
+hz_test2 <- mvn(data = data_for_analysis, mvnTest ="hz")
+
+# Print the test results
+print(mardia_test2)
+print(hz_test2)
+```
+
+### All tests show data does not follow multivariate normal distribution.
+
+

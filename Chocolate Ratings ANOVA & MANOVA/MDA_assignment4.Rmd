@@ -1,0 +1,136 @@
+---
+title: "LAB ASSIGNMENT  - ANOVA & MANOVA"
+author: "Shritama Sengupta"
+date: "2023-09-26"
+output: html_document
+---
+
+### Dataset Loading for ANOVA
+
+#### Data description - The dataset contains ratings for various plain dark chocolates based on their flavor, texture, aftermelt, and overall opinion. These ratings are given on a scale from 1 to 5, representing the quality and characteristics of the chocolates. The dataset focuses on the impact of "Company" and "Cocoa_Percent" on these ratings, revealing significant effects of both factors and their interaction on the overall chocolate experience.
+
+```{r} 
+library(readr)
+flavors_of_cacao <- read_csv("C:/Users/shrit/Downloads/flavors_of_cacao.csv")
+cacao <- flavors_of_cacao[, c("Company","Cocoa_Percent", "Rating")]
+head(cacao)
+summary(cacao)
+```
+
+### 1. ONE-WAY ANOVA
+
+####  The one-way ANOVA will tess the impact of the "Company" factor on the "Rating" variable
+
+```{r} 
+one_way_anova <- aov(Rating ~ Company, data = cacao)
+summary(one_way_anova)
+```
+
+### Interpretation of Output values -
+
+#### 1. Df (Degrees of Freedom): There are two degrees of freedom reported in the table:
+
+####   "Company" with 415 degrees of freedom.
+####   "Residuals" with 1379 degrees of freedom. Residuals represent the unexplained variability or error in the model.
+#### 2. Sum Sq (Sum of Squares): This column shows the sum of squared differences between the observed values and the group means.
+
+####    For "Company," the sum of squares is 172.1.
+####    For "Residuals," the sum of squares is 237.9.
+#### 3. Mean Sq (Mean Sum of Squares): This column shows the mean sum of squares, which is the sum of squares divided by its degrees of freedom.
+
+####    For "Company," the mean sum of squares is 0.4147.
+####    For "Residuals," the mean sum of squares is 0.1725.
+#### 4. F value (F-statistic): The F-statistic is a test statistic that measures the ratio of the variance between groups (Company) to the variance within groups (Residuals). It is used to test whether there are significant differences between the group means.
+
+####    For "Company," the F-statistic is 2.404.
+#### 5. Pr(>F) (p-value): The p-value associated with the F-statistic indicates the probability of observing the F-statistic value as extreme as the one calculated under the null hypothesis (i.e., when there are no significant differences between group means).
+
+####     For "Company," the p-value is very close to zero (reported as "<2e-16"), which is highly significant. This is denoted by three asterisks ('***'), indicating strong evidence against the null hypothesis.
+
+### Result Interpretation-
+
+#### The one-way ANOVA results suggest that there is a statistically significant difference in the "Rating" variable among different "Company" groups. The extremely low p-value (<2e-16) and the F-statistic value of 2.404 indicate that the variation in "Rating" is not due to random chance alone but is likely due to real differences between the companies. In other words, there are significant differences in the ratings of cocoa products produced by different companies.
+
+
+
+### 2. TWO-WAY ANOVA 
+
+#### The two-way ANOVA will consider both the "Company" and "Cocoa_Percent" factors and their interaction on the "Rating" variable
+```{r} 
+cacao$Cocoa_Percent <- as.numeric(gsub("%", "", cacao$Cocoa_Percent))
+
+# Perform the two-way ANOVA
+two_way_anova <- aov(Rating ~ Company * Cocoa_Percent, data = cacao)
+summary(two_way_anova)
+```
+### Result Interpretation - 
+#### The results of the two-way ANOVA indicate that both the "Company" factor and the "Cocoa_Percent" factor have highly significant main effects on the "Rating" variable. This suggests that both the manufacturer (Company) and the cocoa percentage (Cocoa_Percent) have a significant impact on the ratings of the products. Additionally, there is a significant interaction effect between "Company" and "Cocoa_Percent," which means that the combination of the manufacturer and the cocoa percentage also affects the ratings significantly. In summary, the factors "Company" and "Cocoa_Percent," as well as their interaction, all have statistically significant effects on the "Rating" variable, indicating that these factors play a role in determining the ratings of the products.
+
+### Dataset Loading for MANOVA
+
+#### Data description - This dataset provides information about the nutritional content and characteristics of various breakfast cereals, making it suitable for analyzing and comparing different cereal products.
+
+```{r}
+data <- read_csv("C:/Users/shrit/Downloads/cereal.csv")
+cereal <- data[, c("mfr","type", "calories", "protein", "fat", "sugars")]
+head(cereal)
+summary(cereal)
+```
+
+```{r}
+attach(cereal)
+```
+
+### 1. ONE WAY MANOVA
+
+#### mfr (manufacturers -  A = American Home Food Products;G = General Mills;K = Kelloggs;N = Nabisco;P = Post;Q = Quaker Oats;R = Ralston Purina) and "type" (cold,hot)  - Independent Variables
+#### calories, fat, protein - Dependent Variables
+
+#### I performed a one-way MANOVA to test if there are significant differences in the combination of "calories," "protein," "fat," and "sugars" based on the levels of the "mfr" column:
+```{r}
+library(car)
+
+# Performing one-way MANOVA
+manova_result <- manova(cbind(calories, protein, fat, sugars) ~ mfr, data = cereal)
+summary(manova_result)
+
+```
+### Interpretation of the Output values - 
+
+#### 1.  Df (Degrees of Freedom): Degrees of freedom represent the number of values in the final calculation of a statistic that are free to vary. In this case, there are two levels of factors:
+
+####    "mfr" (Manufacturer) with 6 levels (presumably different manufacturers).
+####    "Residuals," which represents the error term.
+#### 2.  Pillai's Trace: Pillai's Trace is a multivariate test statistic that assesses the overall effect of the independent variable(s) on the dependent variables (the combination of "calories," "protein," "fat," and "sugars"). It quantifies how much the group means differ from each other.
+
+####     The Pillai's Trace value is 0.61153, which measures the overall effect of the "mfr" factor on the combination of dependent variables.
+#### 3.  Approximate F-statistic: The approximate F-statistic is a test statistic used to determine if the differences among group means are statistically significant. In this context, it tests whether there are significant differences in the combination of dependent variables (e.g., "calories," "protein," "fat," and "sugars") based on the "mfr" factor.
+
+#### 4.   The approximate F-statistic is 2.1055, which is calculated based on the Pillai's Trace statistic.
+#### 5.   num Df (Numerator Degrees of Freedom): This represents the degrees of freedom associated with the numerator (between-group variation) of the F-test.
+
+####     In this case, there are 24 numerator degrees of freedom.
+#### 6.  den Df (Denominator Degrees of Freedom): This represents the degrees of freedom associated with the denominator (within-group or residual variation) of the F-test.
+
+####     There are 280 denominator degrees of freedom.
+#### 7.   Pr(>F): This is the p-value associated with the F-statistic. It tells you the probability of observing such an F-statistic (or a more extreme one) if there were no significant differences among the groups.
+
+### Result interpretation - 
+
+#### In this case, the p-value is 0.002355, which is less than the commonly used significance level of 0.05. Therefore, you would typically interpret this result as statistically significant. The results indicate that there is a statistically significant effect of the "mfr" factor (Manufacturer) on the combination of dependent variables (e.g., "calories," "protein," "fat," and "sugars"). In other words, at least one manufacturer significantly influences the combination of these nutritional values. "
+
+### 2. TWO-WAY MANOVA
+
+#### I performed a two-way MANOVA to test the interaction between two categorical variables, "mfr" and "type" on the combination of "calories," "protein," "fat," and "sugars"
+
+
+```{r}
+
+# Performing two-way MANOVA
+manova_result <- manova(cbind(calories, protein, fat, sugars) ~ mfr * type, data = cereal)
+summary(manova_result)
+
+```
+### Result interpretation - 
+
+#### The "manufacturer (mfr)" has a significant impact on the combination of nutritional values, while the "type" and the interaction between "manufacturer" and "type" do not have a significant effect.

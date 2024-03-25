@@ -1,0 +1,55 @@
+---
+title: "PCA - Assignment 6"
+author: "Shritama Sengupta"
+date: "2023-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### PCA on "USJudgeRatings" dataset
+
+The "USJudgeRatings" dataset contains ratings for federal judges based on 12 variables, assessing their competence, integrity, and other attributes. This dataset is suitable for Principal Component Analysis (PCA) due to its large size, high dimensionality (12 variables), and the potential presence of correlations between judge ratings. PCA can reveal underlying patterns in judge evaluations, reduce dimensionality, and aid in interpreting the most influential factors contributing to judges' ratings.
+
+```{r cars}
+# Load the USJudgeRatings dataset
+data("USJudgeRatings")
+
+# Display the first few rows of the dataset
+head(USJudgeRatings)
+
+# Select only the numeric columns for PCA
+numeric_data <- USJudgeRatings[, -1]  # Exclude the Judge column
+
+# Standardize the data (important for PCA)
+scaled_data <- scale(numeric_data)
+
+# Perform PCA
+pca_result <- prcomp(scaled_data, scale. = TRUE)
+
+# Summary of the PCA
+summary(pca_result)
+
+# Proportion of variance explained by each principal component
+prop_var <- pca_result$sdev^2 / sum(pca_result$sdev^2)
+prop_var
+
+# Scree plot
+plot(prop_var, type = "b", main = "Scree Plot", xlab = "Principal Component", ylab = "Proportion of Variance Explained")
+```
+
+#### The point at which the plot levels off (the "elbow" of the plot) indicates the optimal number of components to retain. Components before this point contribute significantly to explaining the variance in the data, while components after this point contribute less. Hence it is clear that the first two components contributes most as is most optimal.
+
+```{r}
+# Biplot (for the first two principal components)
+biplot(pca_result, scale = 0)
+
+```
+
+#### **Explained Variance:** The first two principal component, in this case, explains approximately **95.9%** of the total variance in the dataset. By retaining only this component, you are capturing a large majority of the variability present in the original data. This can be particularly useful for dimensionality reduction while preserving most of the information.
+
+#### **Retaining Most Information:** The first two principal component captures the maximum amount of variance in the dataset. By choosing only the first tow components, we retain the most important information present in the original variables. This allows you to represent the dataset in a reduced form while preserving the majority of the variability.
+
+#### **Noise Reduction:** The first two principal component tends to capture the dominant pattern in the data, while the subsequent components capture less dominant patterns (variance). By focusing on these components, we emphasize the primary structure in the data, minimizing the impact of noise or less significant variations.

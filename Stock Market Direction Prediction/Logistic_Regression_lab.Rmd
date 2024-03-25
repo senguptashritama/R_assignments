@@ -1,0 +1,176 @@
+---
+title: "Logistic Regression"
+author: "Shritama Sengupta"
+date: "2023-06-08"
+output: html_document
+---
+
+### 1. Explain about the data in words.
+#### The "Weekly" dataset is a financial dataset that typically contains information about weekly stock market returns and other related variables. It may include features such as stock prices, trading volumes, market indices, and potentially additional financial indicators. It is important to refer to the documentation or description of the dataset to gain a comprehensive understanding of the specific variables and their meanings.
+```{r}
+library(corrplot)
+library(ISLR2)
+data(Weekly)
+df = Weekly
+head(df)
+```
+
+### 2. Produce some numerical and graphical summaries of the Weekly data.
+Do there appear to be any patterns?
+```{r}
+summary(Weekly)
+```
+
+```{r}
+
+# Histogram of Lag Variables
+par(mfrow = c(2, 3))  # To create a grid of multiple plots
+hist(df$Lag1, main = "Lag1", xlab = "Percentage Return", col = "pink")
+hist(df$Lag2, main = "Lag2", xlab = "Percentage Return", col = "pink")
+hist(df$Lag3, main = "Lag3", xlab = "Percentage Return", col = "pink")
+hist(df$Lag4, main = "Lag4", xlab = "Percentage Return", col = "pink")
+hist(df$Lag5, main = "Lag5", xlab = "Percentage Return", col = "pink")
+
+```
+
+### 3. Split the data set as train and test with train data period from 1990 to 2008 and the remaining period from 2009 onwards in test.
+```{r}
+
+# Subset the data for the training set (1990-2008)
+train_data <- df[df$Year <= 2008, ]
+
+# Subset the data for the test set (2009 onwards)
+test_data <- df[df$Year > 2008, ]
+```
+
+### 4.Use the train data set to perform a logistic regression with Direction as the response and the five lag variables plus Volume as predictors.Use the summary function to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?
+```{r}
+
+# Perform logistic regression
+model <- glm(Direction ~ Lag1 + Lag2 + Lag3 + Lag4 + Lag5 + Volume, data = train_data, family = binomial)
+
+# Print the summary of the model
+summary(model)
+#From the summary, we can see that some predictors have statistically significant effects on the response variable (Direction) at a significance level of 0.05:The intercept term (Intercept) has a significant effect with a p-value of 0.000415.
+#Lag1 is also significant with a p-value of 0.033762.
+#The remaining predictors, Lag2, Lag3, Lag4, Lag5, and Volume, do not appear to be statistically significant as their p-values are greater than 0.05.
+#These results suggest that Lag1 has a statistically significant impact on the direction of the stock market, while the other lag variables and volume do not have a significant effect in this logistic regression model.
+
+```
+
+### 5.Compute the confusion matrix and overall fraction of correct predictions for the train set. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression. Also compute the recall value, accuracy, precision and F-score for the train set.
+
+```{r}
+
+# Make predictions on the train set
+train_predictions <- predict(model, newdata = train_data, type = "response")
+
+# Convert predicted probabilities to predicted classes (0 or 1)
+train_predicted_classes <- ifelse(train_predictions > 0.5, 1, 0)
+
+# Create a confusion matrix
+confusion_matrix <- table(Actual = train_data$Direction, Predicted = train_predicted_classes)
+
+# Compute overall fraction of correct predictions
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+# Compute recall (true positive rate), precision, and F-score
+TP <- confusion_matrix[2, 2]
+FP <- confusion_matrix[1, 2]
+TN <- confusion_matrix[1, 1]
+FN <- confusion_matrix[2, 1]
+
+recall <- TP / (TP + FN)
+precision <- TP / (TP + FP)
+F_score <- 2 * (precision * recall) / (precision + recall)
+
+# Print the confusion matrix and performance metrics
+print(confusion_matrix)
+print(paste("Accuracy:", accuracy))
+print(paste("Recall:", recall))
+print(paste("Precision:", precision))
+print(paste("F-score:", F_score))
+```
+
+### 6. Next, fit the logistic regression model using the same training data period with Lag2 as the only predictor.
+```{r}
+
+# Fit logistic regression with Lag2 as the only predictor
+model_lag2 <- glm(Direction ~ Lag2, family = binomial, data = train_data)
+
+# Print the summary of the model
+summary(model_lag2)
+
+```
+
+### 7.Again, compute the confusion matrix and overall fraction of correct predictions for the train set. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression. Also compute the recall value, accuracy, precision and F-score for the train set.
+
+```{r}
+# Make predictions on the train set
+train_predictions_lag2 <- predict(model_lag2, newdata = train_data, type = "response")
+
+# Convert predicted probabilities to predicted classes (0 or 1)
+train_predicted_classes_lag2 <- ifelse(train_predictions_lag2 > 0.5, 1, 0)
+
+# Create a confusion matrix
+confusion_matrix_lag2 <- table(Actual = train_data$Direction, Predicted = train_predicted_classes_lag2)
+
+# Compute overall fraction of correct predictions
+accuracy_lag2 <- sum(diag(confusion_matrix_lag2)) / sum(confusion_matrix_lag2)
+
+# Compute recall (true positive rate), precision, and F-score
+TP_lag2 <- confusion_matrix_lag2[2, 2]
+FP_lag2 <- confusion_matrix_lag2[1, 2]
+TN_lag2 <- confusion_matrix_lag2[1, 1]
+FN_lag2 <- confusion_matrix_lag2[2, 1]
+
+recall_lag2 <- TP_lag2 / (TP_lag2 + FN_lag2)
+precision_lag2 <- TP_lag2 / (TP_lag2 + FP_lag2)
+F_score_lag2 <- 2 * (precision_lag2 * recall_lag2) / (precision_lag2 + recall_lag2)
+
+# Print the confusion matrix and performance metrics
+print(confusion_matrix_lag2)
+print(paste("Accuracy:", accuracy_lag2))
+print(paste("Recall:", recall_lag2))
+print(paste("Precision:", precision_lag2))
+print(paste("F-score:", F_score_lag2))
+
+```
+
+### 8.Which model you think is the best on the training data? Justify.
+
+```{r}
+comparison_df = data.frame(
+  Model = c("Model with All Variables", "Model with Lag2 Only"),
+  Precision = c(precision, precision_lag2),  
+  Recall = c(recall, recall_lag2),  
+  F1_Score = c(F_score, F_score_lag2),
+  AIC = c(AIC(model),AIC(model_lag2))
+)
+
+# Print the comparison dataframe
+print(comparison_df)
+
+#Based on these metrics, the model with Lag2 as the only predictor has a higher recall value, indicating a better ability to correctly identify positive cases. However, the model with all variables has a slightly higher precision and F1-score. The AIC value is slightly lower for the model with Lag2 only, suggesting better model fit.
+
+#Overall, the model with Lag2 as the only predictor appears to perform slightly better in terms of recall, while the model with all variables has a slightly higher precision and F1-score
+```
+
+### 9.Finally use the best model on the test data to obtain the predicted classes and compute the accuracy and confusion matrix
+```{r}
+
+#Since, model2 is a better model than model1. So, we will use model_lag2 for this analysis.
+
+test_data$predicted_direction <- predict(model_lag2, newdata = test_data, type = "response")
+test_data$predicted_direction <- ifelse(test_data$predicted_direction > 0.5, "Up", "Down")
+
+# Compute accuracy
+accuracy3 <- sum(test_data$predicted_direction == test_data$Direction) / nrow(test_data)
+
+# Create the confusion matrix
+confusion_matrix3 <- table(test_data$Direction, test_data$predicted_direction)
+
+# Print the accuracy and confusion matrix
+```
+
+print(paste("Accuracy:", accuracy3))
